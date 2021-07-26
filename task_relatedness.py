@@ -8,16 +8,17 @@ Created on Fri Jul 23 09:45:25 2021
 
 from fonctions import *
 
-p = 300
+p = 100
 m = 2
 t = 2
 
 beta = np.linspace(0,1,10)
-n_t = [[1000,1000], [60, 60]]
+n_t = [[1000,1000], [50, 50]]
 n_t_test = [[5000, 5000]]
 nt = sum(n_t_test[0])
 emp_rate, th_rate, var = [], [], []
-n_trial = 10
+th_rate2 = []
+n_trial = 5
 
 n=0
 for i in range(len(n_t)):
@@ -42,6 +43,8 @@ for b in beta:
     rho1 = n_t[1][0]/sum(n_t[1])
     rho2 = n_t[1][1]/sum(n_t[1])
     # erreur théorique optimale
+    erreur_th = error_rate(t,m,Dc,MM_true,c0,1)[0][0]
+    th_rate2.append(erreur_th)
     th_rate.append(optimal_rate(xx, rho1, rho2))
     for l in range(n_trial):
         X, y_bs = gaussian_synthetic_data(n, p, m, t, n_t, M)
@@ -89,7 +92,8 @@ for b in beta:
 lower = np.array(emp_rate) - np.array(var)
 upper = np.array(emp_rate) + np.array(var)
 plt.plot(beta, emp_rate, '-o', label='empirical rate')
-plt.plot(beta, th_rate, '-v', label='theoritical rate')
+plt.plot(beta, th_rate2, '-v', label='balanced theoritical rate')
+plt.plot(beta, th_rate, '-^', label='unbalanced theoritical rate')
 plt.fill_between(beta, lower, upper, alpha=0.2, label="variance")
 plt.legend()
 plt.title(f"2-class Gaussian mixture transfer error rate for n={n} and p={p}")

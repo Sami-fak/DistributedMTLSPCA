@@ -147,7 +147,10 @@ def label_evaluation(nb_tasks, nb_classes, Dc, M_estimated, c0, task_target=None
     else:
         e3_e4[-2] = 1
         e3_e4[-1] = -1
-    tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/c0),(Dc*1/c0@M_estimated@(e3_e4)))
+    if nb_tasks==2:
+        tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/c0),(Dc*1/c0@M_estimated@(e3_e4)))
+    else:
+        tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/(nb_tasks*c0)),(Dc*1/(nb_tasks*c0)@M_estimated@(e3_e4)))
     return tilde_y
 
 def asymptotic_mean(nb_tasks, nb_classes, y_tilde, Dc, correlation_matrix, t, j, c0=1/21):
@@ -288,10 +291,10 @@ def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, r
         erreur_emp=1-erreur_emp
         
     if debug:
-        # print(eps1/n_t[0][0])
-        # print(eps2/n_t[0][1])
-        # print(erreur_emp)
-        # print(eps1/n_t[0][0]*rho1+eps2/n_t[0][1]*rho2)
+        print(eps1/n_t[0][0])
+        print(eps2/n_t[0][1])
+        print(erreur_emp)
+        print(eps1/n_t[0][0]*rho1+eps2/n_t[0][1]*rho2)
         eps1=eps1/n_t[0][0]
         eps2=eps2/n_t[0][1]
         if eps1>0.5:
@@ -461,7 +464,7 @@ def preprocess(X, p):
     """
     tiled = np.tile(np.reshape(np.sum(X, axis=0), (p, 1)), (1, X.shape[0])).T
     X_t = np.true_divide(X, tiled, where=(tiled!=0))
-    return preprocessing.scale(X, axis=0)
+    return preprocessing.scale(X, axis=0, with_std=True)
     
 
 

@@ -39,17 +39,24 @@ X_test = [
 
 X1_aggregated = np.concatenate((amazon_fts[(y_a==1)][:50],amazon_fts[(y_a==2)][:50]))
 X1_aggregated = preprocess(X1_aggregated,p)
+
+X12_tot = np.concatenate((caltech_fts[(y_c==1)][:20],caltech_fts[(y_c==2)][:20]))
+X12_tot = preprocess(X12_tot,p)
 X = [
     [(X1_aggregated[:50]).T, (X1_aggregated[:50]).T],
-    [(caltech_fts[(y_c==1)][:20]).T, (caltech_fts[(y_c==2)][:20]).T]
+    [(X12_tot[:20]).T, (X12_tot[20:]).T]
 ]
 
+X2_tot = np.concatenate((webcam_fts[(y_w==1)][:20],webcam_fts[(y_w==2)][:20]))
+X2_tot = preprocess(X2_tot,p)
 X2 = [
-    [(webcam_fts[(y_w==1)][:20]).T, (webcam_fts[(y_w==2)][:20]).T]
+    [(X2_tot[:20]).T, (X2_tot[20:]).T]
 ]
 
+X3_tot = np.concatenate((dslr_fts[(y_d==1)][:6],dslr_fts[(y_d==2)][:6]))
+X3_tot = preprocess(X3_tot,p)
 X3 = [
-    [(dslr_fts[(y_d==1)][:6]).T, (dslr_fts[(y_d==2)][:6]).T]
+    [(X3_tot[:6]).T, (X3_tot[6:]).T]
 ]
 
 n_t = [[50, 50], [20,20]]

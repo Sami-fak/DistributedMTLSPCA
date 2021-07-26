@@ -7,16 +7,16 @@ Created on Fri Jul 23 08:58:48 2021
 """
 from fonctions import *
 
-p = 200
+p = 100
 m = 2
 
 # t = [7]
-# t = list(range(2,10))
-t = [2**i for i in range(2,9)]
+t = list(range(2,10))
+# t = [2**i for i in range(2,7)]
 n_t_test = [[10000, 10000]]
 nt = sum(n_t_test[0])
 
-n_trial = 5
+n_trial = 10
 
 # np.random.seed(1)
 emp_rate, th_rate, var, relative_error_rate = [], [], [], []
@@ -38,7 +38,7 @@ moy = mean[1][:]
 X_test, y_test = gaussian_synthetic_data(nt, p, m, 1, n_t_test, [moy])
 X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
 
-theory_only = True
+theory_only = False
 
 added=False
 for idx,b in enumerate(t):
@@ -48,14 +48,14 @@ for idx,b in enumerate(t):
         boucle = b-t[idx-1]
     print(f"boucle = {boucle}")
     # to_add correspond au nombre de data à ajouter en dehors de la tache target
-    to_add = [50, 50]
+    to_add = [2*50, 2*50]
     for i in range(boucle):
 #         print(f"beta = {betat[beta]}")
         mean = mean_matrix(p, beta=betat[beta], k=1, starting=0)
         if i==task_target and not added:
             M.append(moy)
             # pour la tache target
-            n_t.append([6,6])
+            n_t.append([2*6,2*6])
             added=True
         else:
             n_t.append(to_add)
@@ -130,7 +130,7 @@ for idx,b in enumerate(t):
             V_true = np.reshape(V_true, p)
             
             # Remplacer V par V_true et m_t par m_t_true pour tracer l'erreur empirique avec les vraies moyennes
-            erreur_empirique = compute_error_rate(X_test, V_true, m_t_true, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=True)
+            erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=True)
             err.append(erreur_empirique)
 #     print(MM_true)
     if not theory_only:
