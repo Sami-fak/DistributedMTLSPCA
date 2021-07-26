@@ -319,6 +319,39 @@ def debug_histogram(V, X_test, n_t):
     plt.title(r"Histogramme des données de tests projetées sur $V$ : $V^Tx_j$")
     plt.legend()
     plt.show()
+    
+def empirical_mean(nb_tasks, nb_classes, X, p, n_t, display=False):
+    """
+    Retourne la matrice M avec les produits scalaires croisés
+    cf. Remark 1
+    """
+    
+    M = np.empty((nb_tasks*nb_classes, nb_tasks*nb_classes)) # ici 4x4
+    for i in range(nb_tasks):
+        for j in range(nb_classes):
+            for k in range(nb_tasks):
+                for l in range(nb_classes):
+                    if i == k and j == l:
+                        moitie = int(n_t[i][j]/2)
+#                         print("DEBUG diagonal")
+#                         print(f"i = {i}, j = {j}")
+#                         print(i*nb_classes+j, i*nb_classes+j)
+#                         print("moitie : ", moitie)
+                        
+                        M[i*nb_classes+j][i*nb_classes+j] = np.ones((moitie, 1)).T@X[i][j].T[:moitie]@X[i][j].T[moitie:].T@np.ones((moitie))
+                        M[i*nb_classes+j][i*nb_classes+j] /= moitie**2
+                    else:
+#                         print(i*nb_classes+j, k*nb_classes+l)
+#                         print(i, j, k, l)
+                        M[i*nb_classes+j][k*nb_classes+l] = np.ones((n_t[i][j], 1)).T@X[i][j].T@X[k][l]@np.ones((n_t[k][l]))
+                        M[i*nb_classes+j][k*nb_classes+l] /= n_t[i][j]*n_t[k][l]
+    
+    if display:
+        for t in range(nb_tasks):
+            for l in range(nb_classes):
+                print(f"class {t*nb_classes+l} empirical mean = {np.mean(M[t*nb_classes+l])}")
+                
+    return M
 
 def empirical_mean_old(nb_tasks, nb_classes, X, p, n_t):
     """
@@ -331,6 +364,7 @@ def empirical_mean_old(nb_tasks, nb_classes, X, p, n_t):
     for t in range(nb_tasks):
         # O(k)
         for l in range(nb_classes):
+            print(t*nb_classes+l)
             # O(2)
             M[t*nb_classes+l] = X[t][l].dot(np.ones((n_t[t][l])))
             # O(p*n_tl)
@@ -352,6 +386,7 @@ def gather_empirical_mean(nb_tasks, nb_classes, emp_means, diag_means, p, n_t):
     Chaque vecteur de moyennes et de taille px1
     Renvoie la matrice M des, produits scalaires entre moyennes empiriques de chaque client
     """
+    print("diag : ", diag_means)
     M = np.empty((nb_classes*nb_tasks, nb_classes*nb_tasks)) # ici 4x4
     for i in range(nb_tasks):
         # O(k)
@@ -362,7 +397,8 @@ def gather_empirical_mean(nb_tasks, nb_classes, emp_means, diag_means, p, n_t):
                 for l in range(nb_classes):
                     # O(2)
                     if i == k and j == l:
-                        M[i*nb_classes+j][i*nb_classes+j] = diag_means[i*nb_classes+j]
+                        # print(i*nb_classes+j,i*nb_classes+j)
+                        M[i*nb_classes+j][i*nb_classes+j] = diag_means[i*nb_classes+j][0][0]
                     else:
                         M[i*nb_classes+j][k*nb_classes+l] = emp_means[i*nb_classes+j].T@emp_means[k*nb_classes+l]
                 
@@ -420,7 +456,7 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, n
     V /= np.linalg.norm(V)
     V = np.reshape(V, (p))
     
-    return V, y, correlation_matrix, Dc, c0
+    return V, y, correlation_matrix, Dc, c0, MM_gathered
 
 def normalisation(X, p, z=False):
     """

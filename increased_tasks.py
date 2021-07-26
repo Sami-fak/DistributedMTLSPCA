@@ -11,12 +11,12 @@ p = 100
 m = 2
 
 # t = [7]
-t = list(range(2,10))
+t = list(range(2,50))
 # t = [2**i for i in range(2,7)]
 n_t_test = [[10000, 10000]]
 nt = sum(n_t_test[0])
 
-n_trial = 10
+n_trial = 3
 
 # np.random.seed(1)
 emp_rate, th_rate, var, relative_error_rate = [], [], [], []
@@ -39,6 +39,7 @@ X_test, y_test = gaussian_synthetic_data(nt, p, m, 1, n_t_test, [moy])
 X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
 
 theory_only = False
+log = True
 
 added=False
 for idx,b in enumerate(t):
@@ -46,28 +47,28 @@ for idx,b in enumerate(t):
         boucle = b
     else:
         boucle = b-t[idx-1]
-    print(f"boucle = {boucle}")
+    # print(f"boucle = {boucle}")
     # to_add correspond au nombre de data à ajouter en dehors de la tache target
-    to_add = [2*50, 2*50]
+    to_add = [50, 50]
     for i in range(boucle):
 #         print(f"beta = {betat[beta]}")
         mean = mean_matrix(p, beta=betat[beta], k=1, starting=0)
         if i==task_target and not added:
             M.append(moy)
             # pour la tache target
-            n_t.append([2*6,2*6])
+            n_t.append([6,6])
             added=True
         else:
             n_t.append(to_add)
             M.append(mean[0])
         beta+=1
     err=[]
-    print(b)
+    # print(b)
     n=0
-    print(n_t)
+    # print(n_t)
     for i in range(len(n_t)):
         n += sum(n_t[i])
-    print("n = ", n)
+    # print("n = ", n)
     # on crée les données synthétiques 
     c = estimate_c(n_t, n, b, m)
     c0 = p/n
@@ -96,28 +97,32 @@ for idx,b in enumerate(t):
                 diag.append(diag1)
             
             # if display = True, affiche M'M, la matrice M gothique et les labels optimaux
-            V, y, correlation_matrix, Dc, c0 = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False, normalization=False) 
+            V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False, normalization=False) 
             X_train_aggregated = aggregate_array(X, p, n, b, m)
             
             # ici le code pour comparer avec le non distribué
-    #         MM = empirical_mean(b,m,X,p,n_t)
-    #         print("MM Sami 1 : ")
-    #         ns = [50, 50, 6, 6]+[50, 50]*(b-2)
-    #         print(ns)
-    #         ns=np.array(ns,dtype=int)
-    #         MMM=np.zeros((2*b,2*b));
-    #         for i in range(2*b):
-    #             for j in range(2*b):
-    #                 if i==j:
-    #                     X_int1=X_train_aggregated[:,sum(ns[:i]):sum(ns[:i])+ns[i]//2];
-    #                     X_int2=X_train_aggregated[:,sum(ns[:i])+ns[i]//2:sum(ns[:i+1])];
-    #                     MMM[i,j]=4*np.ones((ns[i]//2,)).T@X_int1.T@X_int2@np.ones((ns[j]//2,))/(ns[i]**2);
-    #                 else:
-    #                     X1=X_train_aggregated[:,sum(ns[:i]):sum(ns[:i+1])];
-    #                     X2=X_train_aggregated[:,sum(ns[:j]):sum(ns[:j+1])];
-    #                     MMM[i,j]=np.ones((ns[i],)).T@X1.T@X2@np.ones((ns[j],))/(ns[i]*ns[j]);
-    #         print("MM == MMM : ", MM==MMM)
-    #         matprint(MM)
+            # MM = empirical_mean(b,m,X,p,n_t)
+            # print("MM Sami 1 : ")
+            # ns = [50, 50, 6, 6]+[50, 50]*(b-2)
+            # print(ns)
+            # ns=np.array(ns,dtype=int)
+            # MMM=np.zeros((2*b,2*b));
+            # for i in range(2*b):
+            #     for j in range(2*b):
+            #         if i==j:
+            #             X_int1=X_train_aggregated[:,sum(ns[:i]):sum(ns[:i])+ns[i]//2];
+            #             X_int2=X_train_aggregated[:,sum(ns[:i])+ns[i]//2:sum(ns[:i+1])];
+            #             MMM[i,j]=4*np.ones((ns[i]//2,)).T@X_int1.T@X_int2@np.ones((ns[j]//2,))/(ns[i]**2);
+            #         else:
+            #             X1=X_train_aggregated[:,sum(ns[:i]):sum(ns[:i+1])];
+            #             X2=X_train_aggregated[:,sum(ns[:j]):sum(ns[:j+1])];
+            #             MMM[i,j]=np.ones((ns[i],)).T@X1.T@X2@np.ones((ns[j],))/(ns[i]*ns[j]);
+            # print("MM == MMM : ", MM_gathered-MMM)
+            # matprint(MM)
+            # print()
+            # matprint(MMM)
+            # print()
+            # matprint(MM_gathered)
             
     #         y = label_evaluation(b, m, np.diag(c), MM,c0,1)
     #         correlation_matrix = compute_M_cal(n,p,np.diag(c),MM)
@@ -162,6 +167,20 @@ if not theory_only:
     upper = np.array(emp_rate) + np.array(var)
     plt.fill_between(t, lower, upper, alpha=0.2, label="variance")
     plt.plot(t, emp_rate, "-o", label='empirical rate')
+    
+if log:
+    with open("log.txt", "a") as f:
+        f.write("------------\n")
+        for i in range(len(emp_rate)):
+            f.write(f"({i+2}, {emp_rate[i]})")
+        f.write("\n\n")
+        for i in range(len(emp_rate)):
+            f.write(f"({i+2}, {th_rate[i]})")
+        f.write("\n\n")
+        for i in range(len(emp_rate)):
+            f.write(f"({i+2}, {emp_rate[i]}) +- ({i+2}, {abs(upper[i]-emp_rate[i])})")
+        f.write("\n------------\n")
+    
 plt.plot(t, th_rate, '-v', label='theoritical rate')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
