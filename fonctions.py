@@ -399,7 +399,7 @@ def gather_empirical_mean(nb_tasks, nb_classes, emp_means, diag_means, p, n_t):
                 
     return M
 
-def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False):
+def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, naive=False, single=False):
     """
     Recoit les moyennes empiriques des k clients, calcule la matrice de corrélation, les labels optimaux et renvoie le vecteur V
     Renvoie y un vecteur de labels optimaux adapté à chaque client. (à changer?)
@@ -442,7 +442,27 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False):
         print("y : ")
         matprint(y)
     
-    # le serveur calcule aussi V
+    if naive:
+        y_n = np.zeros((2*t,1))
+        for i in range(2*t):
+            y_n[i]+=(-1)**i
+        V_naive = np.zeros((p,1))
+        for i in range(t):
+            for j in range(m):
+                V_naive += n_t[i][j]*emp_means[i*m+j]*y_n[i*m+j]
+        V_naive /= np.linalg.norm(V_naive)
+        V_naive = np.reshape(V_naive, (p))
+    
+    if single:
+        y_s = np.zeros((2*t,1))
+        y_s[0]=1;y_s[1]=-1
+        V_s = np.zeros((p,1))
+        for i in range(t):
+            for j in range(m):
+                V_s += n_t[i][j]*emp_means[i*m+j]*y_s[i*m+j]
+        V_s /= np.linalg.norm(V_s)
+        V_s = np.reshape(V_s, (p))
+        
     V = np.zeros((p,1))
     for i in range(t):
         for j in range(m):
@@ -450,6 +470,8 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False):
     V /= np.linalg.norm(V)
     V = np.reshape(V, (p))
     
+    if naive and single:
+        return V, y, correlation_matrix, Dc, c0, MM_gathered, y_n, V_naive,y_s,V_s
     return V, y, correlation_matrix, Dc, c0, MM_gathered
 
 def normalisation(X, p, z=False):
@@ -492,12 +514,13 @@ def preprocess(X, p, std=True, axis=0, minmax=False, norm=False):
     """
     Centre et réduit les données X
     """
+    if norm:
+        X /= np.linalg.norm(X)
     if minmax:
         scaler = MinMaxScaler()
         scaler.fit_transform(X)
         return X
-    if norm:
-        X /= np.linalg.norm(X)
+    
     # tiled = np.tile(np.reshape(np.sum(X, axis=0), (p, 1)), (1, X.shape[0])).T
     # X_t = np.true_divide(X, tiled, where=(tiled!=0))
     return preprocessing.scale(X, axis=axis, with_std=std)

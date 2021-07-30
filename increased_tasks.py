@@ -95,7 +95,7 @@ for idx,b in enumerate(t):
             
             # calcul des moyennes empiriques pour chaque client
             for i in range(b):
-                MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], halves=1)
+                MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], halves=0)
     #             print(f"task 1 empirical mean = {np.mean(MM1[0])}")
                 MM.append(MM1)
                 diag.append(diag1)
