@@ -10,7 +10,7 @@ from fonctions import *
 dataset = "amazon"
 m=2
 p=400
-n11, n12, n21, n22 = 2*100, 2*100, 50, 50
+n11, n12, n21, n22 = 200, 2*100, 50, 90
 var, emp_rate, th_rate = [], [], []
 if dataset == "amazon":
     k = 3
@@ -70,7 +70,7 @@ for t in range(2, k+2):
     MM = []
     diag = []
     for i in range(t):
-        MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]])
+        MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], halves=False)
         # chaque moyenne empirique calculée est un vecteur de taille p
 #         sent+=1
 #         t_MM.append(time()-t0)
@@ -80,7 +80,7 @@ for t in range(2, k+2):
     # CENTRAL SERVER
 #     t0 = time()
     # sending empirical means to central server
-    V, y_opt, correlation_matrix, Dc, c0 = merging_center(MM, diag, t, m, p, n, n_t, task_target)
+    V, y_opt, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, t, m, p, n, n_t, task_target)
     matprint(Dc)
     # END CENTRAL SERVER
 #     VTX = V.T@X_test_aggregated.T
@@ -95,7 +95,9 @@ for t in range(2, k+2):
     debug_histogram(V, X_test_aggregated.T, n_t_test)
     
 #     erreur_theorique = error_rate(t, m,  Dc, MM_true, c0)[0][0]
-    emp_rate.append(compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0))
+    emp_rate.append(compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, average=0))
+
+print(emp_rate)
     
 plt.plot(list(range(k)), emp_rate, '-o')
 # lower = np.array(emp_rate) - np.array(var)
@@ -106,7 +108,7 @@ plt.xticks(range(len(ticks)), ticks, size='larger')
 plt.xlabel("Added tasks")
 # plt.ylim(0.18,0.24)
 plt.ylabel("Empirical error rate")
-plt.legend()
+# plt.legend()
 plt.grid()
 plt.title("Real data")
 plt.show()

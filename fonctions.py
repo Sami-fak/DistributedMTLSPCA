@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from scipy import special as sp
 from scipy.stats import norm 
 from sklearn import preprocessing
+from sklearn.preprocessing import MinMaxScaler
 from scipy.io import loadmat
 
 plt.style.use('seaborn-dark-palette')
@@ -53,7 +54,7 @@ def mean_matrix(p, beta=None, k=2, m=2,starting=1):
         M.append(classes)
     return M
 
-def gaussian_synthetic_data(n, p, m, t, n_t, M):
+def gaussian_synthetic_data(n, p, m, t, n_t, M, centered=False):
     """
     Renvoie un tableau de données synthétiques gaussiennes. X[0] accède aux données de la premiere tache.
     X[0][1] accede aux données de la deuxieme classe de la premiere tache.
@@ -64,26 +65,22 @@ def gaussian_synthetic_data(n, p, m, t, n_t, M):
     M est la matrice des moyennes de chaque composante 
     de chaque vecteur aléatoire
     """
-    # assert(sum(n_j)/n==1
+    
     X = []
     tmp = []
     y_test = []
+    
     for task in range(t):
         # pour une tache on a m classes
         tmp = []
         for k in range(m):
-#             X_k = np.empty((n_t[task][k], p))
-            # on prendra la transposée a la fin
-#             print( n_t[task][k])
             mean = np.reshape(M[task][k], p)
-#             for j in range(n_t[task][k]):
-                # on crée n_j[task][k] vecteurs aléatoires de taille 1xp
             X_k = np.random.multivariate_normal(mean, np.identity(p), size=(n_t[task][k]))
             y_test.append(k)
+            if centered:
+                X_k = preprocess(X_k, p, False, 1)
             X_k = np.transpose(X_k)
-            #print(k)
             tmp.append(X_k)
-            # print("tmp = ", tmp)
         X.append(tmp)
             
     return X, y_test
@@ -128,9 +125,7 @@ def compute_M_cal(n,p,Dc,MM, k=2, display=False):
     """
     c0 = p/n
     correlation_matrix = 1/c0*np.power(Dc, 1/2)@MM@np.power(Dc, 1/2)
-    if display==True:
-        plt.imshow(correlation_matrix)
-        plt.show()
+    
     return correlation_matrix
 
 # a revoir ?
@@ -147,10 +142,7 @@ def label_evaluation(nb_tasks, nb_classes, Dc, M_estimated, c0, task_target=None
     else:
         e3_e4[-2] = 1
         e3_e4[-1] = -1
-    if nb_tasks==2:
-        tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/c0),(Dc*1/c0@M_estimated@(e3_e4)))
-    else:
-        tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/(nb_tasks*c0)),(Dc*1/(nb_tasks*c0)@M_estimated@(e3_e4)))
+    tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/(nb_tasks*c0)),(Dc*1/(nb_tasks*c0)@M_estimated@(e3_e4)))
     return tilde_y
 
 def asymptotic_mean(nb_tasks, nb_classes, y_tilde, Dc, correlation_matrix, t, j, c0=1/21):
@@ -237,7 +229,8 @@ def compute_score(V, x, m_t, rho1=0.5, rho2=0.5, average=True):
     """
     x_projection = np.transpose(V).dot(x)
     if average:
-        average_mean = 1/2*(m_t[0] + m_t[1]) - 1/(m_t[0]-m_t[1])*np.log(rho1/rho2)
+        average_mean = 1/2*(m_t[0] + m_t[1]) 
+        # - 1/(m_t[0]-m_t[1])*np.log(rho1/rho2)
     else:
         average_mean = 0
     return (1 if x_projection > average_mean else -1) 
@@ -274,7 +267,7 @@ def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, r
     for l in range(nb_classes):
         for i in range(n_t[0][l]):
             # on prend la transposée pour pouvoir travailler avec les colonnes
-            
+
             score = compute_score(V, X_test[0][l].T[i].T, m_t[task_target], rho1, rho2, average)
             # misclassifaction of class 1 in class 2, 
             if (score == -1 and l == 0):
@@ -353,7 +346,7 @@ def empirical_mean(nb_tasks, nb_classes, X, p, n_t, display=False):
                 
     return M
 
-def empirical_mean_old(nb_tasks, nb_classes, X, p, n_t):
+def empirical_mean_old(nb_tasks, nb_classes, X, p, n_t, halves=True):
     """
     compute empirical mean for data 
     retourne la matrice M de taille px(2*k) et un vecteur contenant les coefficients diagonaux
@@ -361,22 +354,24 @@ def empirical_mean_old(nb_tasks, nb_classes, X, p, n_t):
     """
     M = np.empty((nb_classes*nb_tasks, p))
     diag = []
+    emp = 0
     for t in range(nb_tasks):
         # O(k)
         for l in range(nb_classes):
-            print(t*nb_classes+l)
             # O(2)
-            M[t*nb_classes+l] = X[t][l].dot(np.ones((n_t[t][l])))
-            # O(p*n_tl)
-            M[t*nb_classes+l] /= n_t[t][l]
+            emp = X[t][l].dot(np.ones((n_t[t][l])))/n_t[t][l]
+            M[t*nb_classes+l] = emp
             # O(1)
             
-            moitie = int(n_t[t][l]/2)
-            mu1 = X[t][l].T[:moitie].T@np.ones((moitie))
-            mu2 = X[t][l].T[moitie:].T@np.ones((moitie))
-            mu1, mu2 = np.reshape(mu1, (p, 1)), np.reshape(mu2, (p, 1))
-            diag.append(mu1.T@mu2/moitie**2)
-            # O(1)
+            # halves
+            if halves:
+                moitie = int(n_t[t][l]/2)
+                mu1 = X[t][l].T[:moitie].T@np.ones((moitie))
+                mu2 = X[t][l].T[moitie:].T@np.ones((moitie))
+                mu1, mu2 = np.reshape(mu1, (p, 1)), np.reshape(mu2, (p, 1))
+                diag.append(mu1.T@mu2/moitie**2)
+            else:                
+                diag.append(emp.T@emp-p/n_t[t][l])
     return M.T, diag
 
 
@@ -386,7 +381,7 @@ def gather_empirical_mean(nb_tasks, nb_classes, emp_means, diag_means, p, n_t):
     Chaque vecteur de moyennes et de taille px1
     Renvoie la matrice M des, produits scalaires entre moyennes empiriques de chaque client
     """
-    print("diag : ", diag_means)
+    # print("diag : ", diag_means)
     M = np.empty((nb_classes*nb_tasks, nb_classes*nb_tasks)) # ici 4x4
     for i in range(nb_tasks):
         # O(k)
@@ -398,13 +393,13 @@ def gather_empirical_mean(nb_tasks, nb_classes, emp_means, diag_means, p, n_t):
                     # O(2)
                     if i == k and j == l:
                         # print(i*nb_classes+j,i*nb_classes+j)
-                        M[i*nb_classes+j][i*nb_classes+j] = diag_means[i*nb_classes+j][0][0]
+                        M[i*nb_classes+j][i*nb_classes+j] = diag_means[i*nb_classes+j]
                     else:
                         M[i*nb_classes+j][k*nb_classes+l] = emp_means[i*nb_classes+j].T@emp_means[k*nb_classes+l]
                 
     return M
 
-def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, normalization=False):
+def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False):
     """
     Recoit les moyennes empiriques des k clients, calcule la matrice de corrélation, les labels optimaux et renvoie le vecteur V
     Renvoie y un vecteur de labels optimaux adapté à chaque client. (à changer?)
@@ -429,8 +424,7 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, n
             diagonal.append(diag[i][l])
     #emp_means = [MM11, MM12, MM21, MM22, MM31, ...]
     MM_gathered = gather_empirical_mean(t, m, emp_means, diagonal, p, n_t)
-    if normalization:
-        MM_gathered /= np.linalg.norm(MM_gathered)
+    
     if display:
         print("MM_gathered : ")
         matprint(MM_gathered)
@@ -494,13 +488,19 @@ def divide_array(X,y,k,m=2):
         
     return X_data, n_t
 
-def preprocess(X, p):
+def preprocess(X, p, std=True, axis=0, minmax=False, norm=False):
     """
     Centre et réduit les données X
     """
-    tiled = np.tile(np.reshape(np.sum(X, axis=0), (p, 1)), (1, X.shape[0])).T
-    X_t = np.true_divide(X, tiled, where=(tiled!=0))
-    return preprocessing.scale(X, axis=0, with_std=True)
+    if minmax:
+        scaler = MinMaxScaler()
+        scaler.fit_transform(X)
+        return X
+    if norm:
+        X /= np.linalg.norm(X)
+    # tiled = np.tile(np.reshape(np.sum(X, axis=0), (p, 1)), (1, X.shape[0])).T
+    # X_t = np.true_divide(X, tiled, where=(tiled!=0))
+    return preprocessing.scale(X, axis=axis, with_std=std)
     
 
 

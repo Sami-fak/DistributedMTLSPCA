@@ -11,7 +11,7 @@ p = 100
 m = 2
 
 # t = [7]
-t = list(range(2,20))
+t = list(range(2,10))
 # t = [2**i for i in range(2,6)]
 n_t_test = [[10000, 10000]]
 nt = sum(n_t_test[0])
@@ -149,7 +149,7 @@ for idx,b in enumerate(t):
         # test2=V.T@X_test_aggregated
         # plt.plot(test2,'go');plt.plot(test1[0],'r*');plt.show();
         # Remplacer V par V_true et m_t par m_t_true pour tracer l'erreur empirique avec les vraies moyennes
-        erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=True)
+        erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
         err.append(erreur_empirique)
 #     print(MM_true)
     x = np.linspace(-5,5, 500)

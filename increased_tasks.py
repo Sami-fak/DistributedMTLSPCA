@@ -6,23 +6,27 @@ Created on Fri Jul 23 08:58:48 2021
 @author: sami
 """
 from fonctions import *
+from time import time
+t0=time()
 
-p = 100
+multiple=2
+
+p = multiple*100
 m = 2
 
 # t = [7]
-t = list(range(2,50))
+t = list(range(2,10))
 # t = [2**i for i in range(2,7)]
-n_t_test = [[10000, 10000]]
+n_t_test = [[5000, 5000]]
 nt = sum(n_t_test[0])
 
-n_trial = 3
+n_trial = 10
 
-# np.random.seed(1)
+# np.random.seed(3)
 emp_rate, th_rate, var, relative_error_rate = [], [], [], []
 task_target = 1
-# betat = np.random.uniform(0,1,size=(t[-1]))
-betat = 0.6*np.ones((t[-1]))
+betat = np.random.uniform(0,1,size=(t[-1]))
+# betat = 0.8*np.ones((t[-1]))
 beta = 0
 X = []
 X_test = []
@@ -35,13 +39,13 @@ M.append(mean[0])
 # on garde moy pour la tâche target
 moy = mean[1][:]
 # on crée les données de test
-X_test, y_test = gaussian_synthetic_data(nt, p, m, 1, n_t_test, [moy])
+X_test, y_test = gaussian_synthetic_data(nt, p, m, 1, n_t_test, [moy], True)
 X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
 
 theory_only = False
 log = True
-
 added=False
+
 for idx,b in enumerate(t):
     if idx==0:
         boucle = b
@@ -49,14 +53,14 @@ for idx,b in enumerate(t):
         boucle = b-t[idx-1]
     # print(f"boucle = {boucle}")
     # to_add correspond au nombre de data à ajouter en dehors de la tache target
-    to_add = [50, 50]
+    to_add = [multiple*50, multiple*50]
     for i in range(boucle):
 #         print(f"beta = {betat[beta]}")
         mean = mean_matrix(p, beta=betat[beta], k=1, starting=0)
         if i==task_target and not added:
             M.append(moy)
             # pour la tache target
-            n_t.append([6,6])
+            n_t.append([multiple*6, multiple*6])
             added=True
         else:
             n_t.append(to_add)
@@ -68,7 +72,7 @@ for idx,b in enumerate(t):
     # print(n_t)
     for i in range(len(n_t)):
         n += sum(n_t[i])
-    # print("n = ", n)
+    print("n = ", n)
     # on crée les données synthétiques 
     c = estimate_c(n_t, n, b, m)
     c0 = p/n
@@ -85,19 +89,19 @@ for idx,b in enumerate(t):
     J = create_J(m, b, n, n_t)
     if not theory_only:
         for l in range(n_trial):
-            X, y_bs = gaussian_synthetic_data(n, p, m, b, n_t, M)
+            X, y_bs = gaussian_synthetic_data(n, p, m, b, n_t, M, True)
             MM = []
             diag = []
             
             # calcul des moyennes empiriques pour chaque client
             for i in range(b):
-                MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]])
+                MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], halves=1)
     #             print(f"task 1 empirical mean = {np.mean(MM1[0])}")
                 MM.append(MM1)
                 diag.append(diag1)
             
             # if display = True, affiche M'M, la matrice M gothique et les labels optimaux
-            V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False, normalization=False) 
+            V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False) 
             X_train_aggregated = aggregate_array(X, p, n, b, m)
             
             # ici le code pour comparer avec le non distribué
@@ -135,24 +139,25 @@ for idx,b in enumerate(t):
             V_true = np.reshape(V_true, p)
             
             # Remplacer V par V_true et m_t par m_t_true pour tracer l'erreur empirique avec les vraies moyennes
-            erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=True)
+            erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
             err.append(erreur_empirique)
 #     print(MM_true)
     if not theory_only:
-        x = np.linspace(-5,5, 500)
-        plt.plot(x, norm.pdf(x, m_t_true[task_target][0], 1))
-        plt.plot(x, norm.pdf(x, m_t_true[task_target][1], 1))
-        plt.axvline(x=1/2*(m_t_true[task_target][0]+m_t_true[task_target][1]))
-        plt.axvline(m_t_true[task_target][0], ls='--')
-        plt.axvline(m_t_true[task_target][1], ls='--')
-        debug_histogram(V_true, X_test_aggregated, n_t_test)
-        x = np.linspace(-5,5, 500)
-        plt.plot(x, norm.pdf(x, m_t[task_target][0], 1))
-        plt.plot(x, norm.pdf(x, m_t[task_target][1], 1))
-        plt.axvline(x=1/2*(m_t[task_target][0]+m_t[task_target][1]))
-        plt.axvline(m_t[1][0], ls='--')
-        plt.axvline(m_t[1][1], ls='--')
-        debug_histogram(V, X_test_aggregated, n_t_test)
+        pass
+        # x = np.linspace(-5,5, 500)
+        # plt.plot(x, norm.pdf(x, m_t_true[task_target][0], 1))
+        # plt.plot(x, norm.pdf(x, m_t_true[task_target][1], 1))
+        # plt.axvline(x=1/2*(m_t_true[task_target][0]+m_t_true[task_target][1]))
+        # plt.axvline(m_t_true[task_target][0], ls='--')
+        # plt.axvline(m_t_true[task_target][1], ls='--')
+        # debug_histogram(V_true, X_test_aggregated, n_t_test)
+        # x = np.linspace(-5,5, 500)
+        # plt.plot(x, norm.pdf(x, m_t[task_target][0], 1))
+        # plt.plot(x, norm.pdf(x, m_t[task_target][1], 1))
+        # plt.axvline(x=0)
+        # plt.axvline(m_t[1][0], ls='--')
+        # plt.axvline(m_t[1][1], ls='--')
+        # debug_histogram(V, X_test_aggregated, n_t_test)
     
     erreur_th = optimal_rate(xx, rho1, rho2)
     # erreur_th = error_rate(b,m,Dc,MM_true,c0,1)[0][0]
@@ -170,11 +175,12 @@ if not theory_only:
     
 if log:
     with open("log.txt", "a") as f:
+        f.write(f"\nbeta = {betat[0]}\n")
         f.write("------------\n")
         for i in range(len(emp_rate)):
             f.write(f"({i+2}, {emp_rate[i]})")
         f.write("\n\n")
-        for i in range(len(emp_rate)):
+        for i in range(len(th_rate)):
             f.write(f"({i+2}, {th_rate[i]})")
         f.write("\n\n")
         for i in range(len(emp_rate)):
@@ -182,9 +188,11 @@ if log:
         f.write("\n------------\n")
     
 plt.plot(t, th_rate, '-v', label='theoritical rate')
+plt.axhline(0.16)
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
 plt.title(r"Taux d'erreur empirique et théorique")
 plt.legend()
 plt.grid()
 plt.show()
+print(time()-t0)
