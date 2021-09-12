@@ -18,7 +18,7 @@ n_t_test = [[5000, 5000]]
 nt = sum(n_t_test[0])
 emp_rate, th_rate, var = [], [], []
 th_rate2 = []
-n_trial = 5
+n_trial = 10
 
 n=0
 for i in range(len(n_t)):
@@ -30,7 +30,7 @@ task_target = 1
 for b in beta:
     err = []
     # on crée les données synthétiques
-    M = mean_matrix(p, b, t)
+    M = mean_matrix(p, b, t, constant=0)
     c = estimate_c(n_t, n, t, m)
     c0 = p/n
     Dc = np.diag(c)
@@ -43,7 +43,7 @@ for b in beta:
     rho1 = n_t[1][0]/sum(n_t[1])
     rho2 = n_t[1][1]/sum(n_t[1])
     # erreur théorique optimale
-    erreur_th = error_rate(t,m,Dc,MM_true,c0,1)[0][0]
+    erreur_th = error_rate(t, m,  Dc, MM_true, c0)[0][0]
     th_rate2.append(erreur_th)
     th_rate.append(optimal_rate(xx, rho1, rho2))
     for l in range(n_trial):
@@ -54,14 +54,14 @@ for b in beta:
         # On calcule les moyennes empiriques sur les données locales
         # diag1 = [diag1[0], diag1[1]]
         for i in range(t):
-            MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]])
+            MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], 0)
             MM.append(MM1)
             diag.append(diag1)
 
     # CENTRAL SERVER
         # sending empirical means to central server
         # y est un vecteur de vecteurs de labels optimaux
-        V, y, correlation_matrix, Dc, c0 = merging_center(MM, diag, t, m, p, n, n_t, task_target, normalization=False)
+        V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, t, m, p, n, n_t, task_target)
 
     # END CENTRAL SERVER
 
@@ -71,17 +71,17 @@ for b in beta:
 #             aggregated.append(aggregate_array([X[i]], p, ni[i], 1, m))
         m_t = create_mt(t, m, y, Dc, correlation_matrix, c0)
         X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
-        erreur_empirique, eps1, eps2 = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, True)
+        erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False)
         err.append(erreur_empirique)
 #         epsilon1.append(eps1)
 #         epsilon2.append(eps2)
         
-    x = np.linspace(-5,5, 500)
-    plt.plot(x, norm.pdf(x, m_t_true[1][0], 1), label=r"true m_{t1}")
-    plt.plot(x, norm.pdf(x, m_t_true[1][1], 1), label=r"true m_{t2}")
-    plt.plot(x, norm.pdf(x, m_t[1][0], 1), label=r"m_{t1}")
-    plt.plot(x, norm.pdf(x, m_t[1][1], 1), label=r"m_{t2}")    
-    debug_histogram(V, X_test_aggregated, n_t_test)
+    # x = np.linspace(-5,5, 500)
+    # plt.plot(x, norm.pdf(x, m_t_true[1][0], 1), label=r"true m_{t1}")
+    # plt.plot(x, norm.pdf(x, m_t_true[1][1], 1), label=r"true m_{t2}")
+    # plt.plot(x, norm.pdf(x, m_t[1][0], 1), label=r"m_{t1}")
+    # plt.plot(x, norm.pdf(x, m_t[1][1], 1), label=r"m_{t2}")    
+    # debug_histogram(V, X_test_aggregated, n_t_test)
     emp_rate.append(np.mean(err))
 #     e1.append(np.mean(epsilon1))
 #     e2.append(np.mean(epsilon2))
@@ -92,8 +92,7 @@ for b in beta:
 lower = np.array(emp_rate) - np.array(var)
 upper = np.array(emp_rate) + np.array(var)
 plt.plot(beta, emp_rate, '-o', label='empirical rate')
-plt.plot(beta, th_rate2, '-v', label='balanced theoritical rate')
-plt.plot(beta, th_rate, '-^', label='unbalanced theoritical rate')
+plt.plot(beta, th_rate2, '-v', label='theoritical rate')
 plt.fill_between(beta, lower, upper, alpha=0.2, label="variance")
 plt.legend()
 plt.title(f"2-class Gaussian mixture transfer error rate for n={n} and p={p}")

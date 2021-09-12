@@ -26,13 +26,15 @@ def matprint(mat, fmt="g"):
             print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
         print("")
 
-def mean_matrix(p, beta=None, k=2, m=2,starting=1):
+def mean_matrix(p, beta=None, k=2, m=2,starting=1, constant=False):
     """
     Crée des vecteurs de moyennes en respectant les conditions de non trivialité 
     retourne un tableau contenant k tableaux de m moyennes.
     beta est le paramètre de task relatedness. Si beta n'est pas précisé, il est tiré au hasard uniformément sur [0,1] pour chaque t.
     k=2, m=2 par défaut
     if starting==1 la premiere moyenne sera les vecteurs canoniques e1 et ep
+    if constant: (simus avec beta constant)
+        mu_ortho randomisé
     """
     mu = np.zeros((p,1))
     mu[0]= 1
@@ -46,8 +48,19 @@ def mean_matrix(p, beta=None, k=2, m=2,starting=1):
             classes.append((-1)**l*mu)
         M.append(classes)
     
-    for t in range(starting,k):          
+    for t in range(starting,k):
+        if constant:
+            # mu_ortho = np.zeros((p,1))
+            # gaussian = np.random.normal(0,1,size=(p-1,1))
+            # mu_ortho = np.random.multivariate_normal(np.zeros(p), np.identity(p), size=(1)).T
+            # mu_ortho[0] = 0
+            mu_ortho = np.concatenate((np.zeros((1,1)),np.random.normal(0,1,size=(p-1,1))))
+            mu_ortho /= np.linalg.norm(mu_ortho)
+            # mu_ortho = np.reshape(mu_ortho, (p,1))
+            print("norm : ", np.linalg.norm(mu_ortho))
+        print("mu_ortho : ", mu_ortho[:5])
         mu_t = beta*mu+np.sqrt(1-beta**2)*mu_ortho
+        # mu_t = mu_ortho
         classes = []
         for l in range(m):
             classes.append((-1)**l*mu_t)
@@ -238,17 +251,16 @@ def compute_score(V, x, m_t, rho1=0.5, rho2=0.5, average=True):
 def qfunc(x):
     return 0.5-0.5*sp.erf(x/np.sqrt(2))
 
+
+
 def error_rate(nb_tasks, nb_classes, Dc, M_cur, c0, task_target=1):
-    """
-    Calcule l'erreur théorique
-    """
     e3 = np.zeros((nb_tasks*nb_classes, 1))
     e3[2*task_target] = 1
     power_dc = power_diagonal_matrix(Dc, -1/2)
     inv = np.linalg.inv(M_cur+np.identity(nb_tasks*nb_classes))
-    # print("arg q-func : ")
-    # print(e3.T.dot(M_cur).dot(Dc).dot(np.linalg.inv(Dc.dot(M_cur).dot(Dc)+c0*Dc)).dot(Dc).dot(M_cur).dot(e3))
-    return qfunc(np.sqrt(e3.T.dot(M_cur).dot(Dc).dot(np.linalg.inv(Dc.dot(M_cur).dot(Dc)+c0*Dc)).dot(Dc).dot(M_cur).dot(e3)))
+    print("arg q-func : ")
+    print(e3.T.dot(M_cur).dot(Dc).dot(np.linalg.inv(Dc.dot(M_cur).dot(Dc)+c0*Dc)).dot(Dc).dot(M_cur).dot(e3))
+    return qfunc(np.sqrt(e3.T.dot(M_cur).dot(Dc).dot(np.linalg.inv(Dc.dot(M_cur).dot(Dc)+c0*Dc)).dot(Dc).dot(M_cur).dot(e3)))   
 
 def optimal_rate(xx, rho1, rho2):
     """
