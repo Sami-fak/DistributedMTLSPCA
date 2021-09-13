@@ -112,37 +112,6 @@ for idx,b in enumerate(t):
             # if display = True, affiche M'M, la matrice M gothique et les labels optimaux
             V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False) 
             X_train_aggregated = aggregate_array(X, p, n, b, m)
-            
-            # ici le code pour comparer avec le non distribué
-            # MM = empirical_mean(b,m,X,p,n_t)
-            # print("MM Sami 1 : ")
-            # ns = [50, 50, 6, 6]+[50, 50]*(b-2)
-            # print(ns)
-            # ns=np.array(ns,dtype=int)
-            # MMM=np.zeros((2*b,2*b));
-            # for i in range(2*b):
-            #     for j in range(2*b):
-            #         if i==j:
-            #             X_int1=X_train_aggregated[:,sum(ns[:i]):sum(ns[:i])+ns[i]//2];
-            #             X_int2=X_train_aggregated[:,sum(ns[:i])+ns[i]//2:sum(ns[:i+1])];
-            #             MMM[i,j]=4*np.ones((ns[i]//2,)).T@X_int1.T@X_int2@np.ones((ns[j]//2,))/(ns[i]**2);
-            #         else:
-            #             X1=X_train_aggregated[:,sum(ns[:i]):sum(ns[:i+1])];
-            #             X2=X_train_aggregated[:,sum(ns[:j]):sum(ns[:j+1])];
-            #             MMM[i,j]=np.ones((ns[i],)).T@X1.T@X2@np.ones((ns[j],))/(ns[i]*ns[j]);
-            # print("MM == MMM : ", MM_gathered-MMM)
-            # matprint(MM)
-            # print()
-            # matprint(MMM)
-            # print()
-            # matprint(MM_gathered)
-            
-    #         y = label_evaluation(b, m, np.diag(c), MM,c0,1)
-    #         correlation_matrix = compute_M_cal(n,p,np.diag(c),MM)
-    #         X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
-            
-    #         V = compute_V_old(y, X_train_aggregated, J)
-    #         V = np.reshape(V, p)
             m_t = create_mt(b, m, y, Dc, correlation_matrix, c0)
             V_true = compute_V_old(y_true, X_train_aggregated, J)
             V_true = np.reshape(V_true, p)
