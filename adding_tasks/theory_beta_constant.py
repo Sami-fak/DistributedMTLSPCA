@@ -17,7 +17,7 @@ t = list(range(2,15))
 # t = [2**i for i in range(2,7)]
 constant = list(range(0,12,2))
 
-np.random.seed(0)
+# np.random.seed(0)
 for beta_constant in constant:
     th_rate = []
     task_target = 1

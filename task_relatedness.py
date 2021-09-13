@@ -12,9 +12,9 @@ p = 100
 m = 2
 t = 2
 
-beta = np.linspace(0,1,10)
+beta = np.linspace(0,1,5)
 n_t = [[1000,1000], [50, 50]]
-n_t_test = [[5000, 5000]]
+n_t_test = [[500, 500]]
 nt = sum(n_t_test[0])
 emp_rate, th_rate, var = [], [], []
 th_rate2 = []
@@ -71,7 +71,7 @@ for b in beta:
 #             aggregated.append(aggregate_array([X[i]], p, ni[i], 1, m))
         m_t = create_mt(t, m, y, Dc, correlation_matrix, c0)
         X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
-        erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False)
+        erreur_empirique = compute_error_rate(X_test, V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
         err.append(erreur_empirique)
 #         epsilon1.append(eps1)
 #         epsilon2.append(eps2)

@@ -282,11 +282,11 @@ def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, r
 
             score = compute_score(V, X_test[0][l].T[i].T, m_t[task_target], rho1, rho2, average)
             # misclassifaction of class 1 in class 2, 
-            if (score == -1 and l == 0):
+            if (score == 1 and l == 0):
                 error +=1
                 eps1+=1
             #missclassification of class 2 in class 1
-            elif (score == 1 and l == 1):
+            elif (score == -1 and l == 1):
                 error +=1
                 eps2+=1
                     

@@ -9,18 +9,18 @@ from fonctions import *
 from time import time
 t0=time()
 
-multiple=2
+multiple=5
 
-p = 200
+p = 500
 m = 2
 
 # t = [7]
-t = list(range(2,15))
+t = list(range(2,10))
 # t = [2**i for i in range(2,7)]
 n_t_test = [[1000, 1000]]
 nt = sum(n_t_test[0])
 
-n_trial = 10
+n_trial = 1
 
 # np.random.seed(0)
 emp_rate, th_rate, var, relative_error_rate = [], [], [], []
@@ -47,7 +47,6 @@ moy = mean[1][:]
 X_test, y_test = gaussian_synthetic_data(nt, p, m, 1, n_t_test, [moy], True)
 X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
 
-theory_only = False
 log = False
 added=False
 
@@ -96,67 +95,43 @@ for idx,b in enumerate(t):
     rho1 = n_t[1][0]/sum(n_t[1])
     rho2 = n_t[1][1]/sum(n_t[1])
     J = create_J(m, b, n, n_t)
-    if not theory_only:
-        for l in range(n_trial):
-            X, y_bs = gaussian_synthetic_data(n, p, m, b, n_t, M, True)
-            MM = []
-            diag = []
+    
+    for l in range(n_trial):
+        X, y_bs = gaussian_synthetic_data(n, p, m, b, n_t, M, True)
+        MM = []
+        diag = []
+        
+        # calcul des moyennes empiriques pour chaque client
+        for i in range(b):
+            MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], halves=0)
+#             print(f"task 1 empirical mean = {np.mean(MM1[0])}")
+            MM.append(MM1)
+            diag.append(diag1)
+        
+        # if display = True, affiche M'M, la matrice M gothique et les labels optimaux
+        V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False) 
+        X_train_aggregated = aggregate_array(X, p, n, b, m)
+        m_t = create_mt(b, m, y, Dc, correlation_matrix, c0)
+        V_true = compute_V_old(y_true, X_train_aggregated, J)
+        V_true = np.reshape(V_true, p)
+        
+        # Remplacer V par V_true et m_t par m_t_true pour tracer l'erreur empirique avec les vraies moyennes
+        erreur_empirique = compute_error_rate(X_test,V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
+        erreur_empirique2 = compute_error_rate(X_test, V_true, m_t_true, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
+        err.append(erreur_empirique)
+        err2.append(erreur_empirique2)
             
-            # calcul des moyennes empiriques pour chaque client
-            for i in range(b):
-                MM1, diag1 = empirical_mean_old(1, m, [X[i]], p, [n_t[i]], halves=0)
-    #             print(f"task 1 empirical mean = {np.mean(MM1[0])}")
-                MM.append(MM1)
-                diag.append(diag1)
-            
-            # if display = True, affiche M'M, la matrice M gothique et les labels optimaux
-            V, y, correlation_matrix, Dc, c0, MM_gathered = merging_center(MM, diag, b, m, p, n, n_t, task_target, display=False) 
-            X_train_aggregated = aggregate_array(X, p, n, b, m)
-            m_t = create_mt(b, m, y, Dc, correlation_matrix, c0)
-            V_true = compute_V_old(y_true, X_train_aggregated, J)
-            V_true = np.reshape(V_true, p)
-            
-            # Remplacer V par V_true et m_t par m_t_true pour tracer l'erreur empirique avec les vraies moyennes
-            erreur_empirique = compute_error_rate(X_test,V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
-            erreur_empirique2 = compute_error_rate(X_test, V_true, m_t_true, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
-            err.append(erreur_empirique)
-            err2.append(erreur_empirique2)
-#     print(MM_true)
-    if not theory_only:
-        pass
-        # x = np.linspace(-5,5, 500)
-        # plt.plot(x, norm.pdf(x, m_t_true[task_target][0], 1),label=r'$\mathcal{N}(m_1,1)$')
-        # plt.plot(x, norm.pdf(x, m_t_true[task_target][1], 1),label=r'$\mathcal{N}(m_2,1)$')
-        # plt.axvline(x=1/2*(m_t_true[task_target][0]+m_t_true[task_target][1]))
-        # plt.axvline(m_t_true[task_target][0], ls='--', color='g')
-        # plt.axvline(m_t_true[task_target][1], ls='--', color='g')
-        # debug_histogram(V_true, X_test_aggregated, n_t_test)
-        # x = np.linspace(-5,5, 500)
-        # tick = [-2, m_t[1][0],0, m_t[1][1],2]
-        # labels = [-2, r'$\hat{m}_1$', 0, r'$\hat{m}_2$', 2]
-        # plt.xticks(tick, labels)
-        # plt.plot(x, norm.pdf(x, m_t[task_target][0], 1))
-        # plt.plot(x, norm.pdf(x, m_t[task_target][1], 1))
-        # plt.axvline(x=0)
-        # plt.axvline(m_t[1][0], ls='--')
-        # plt.axvline(m_t[1][1], ls='--')
-        # debug_histogram(V, X_test_aggregated, n_t_test)
-
-    erreur_th = optimal_rate(xx, rho1, rho2)
-    # erreur_th2 = error_rate(b,m,Dc,MM_true,c0,1)[0][0]
-    if not theory_only:
-        emp_rate.append(np.mean(err))
-        emp_rate2.append(np.mean(err2))
-        var.append(np.std(err))
+    erreur_th = error_rate(b,m,Dc,MM_true,c0,1)[0][0]
+    emp_rate.append(np.mean(err))
+    emp_rate2.append(np.mean(err2))
+    var.append(np.std(err))
     th_rate.append(erreur_th)
 
-
-if not theory_only:
-    lower = np.array(emp_rate) - np.array(var)
-    upper = np.array(emp_rate) + np.array(var)
-    plt.fill_between(t, lower, upper, alpha=0.2, label="variance")
-    plt.plot(t, emp_rate, "-o", label='empirical rate')
-    plt.plot(t, emp_rate2)
+lower = np.array(emp_rate) - np.array(var)
+upper = np.array(emp_rate) + np.array(var)
+plt.fill_between(t, lower, upper, alpha=0.2, label="variance")
+plt.plot(t, emp_rate, "-o", label='empirical rate')
+plt.plot(t, emp_rate2)
     
 if log:
     with open("log.txt", "a") as f:
