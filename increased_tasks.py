@@ -15,7 +15,7 @@ p = 200
 m = 2
 
 # t = [7]
-t = list(range(2,9))
+t = list(range(2,15))
 # t = [2**i for i in range(2,7)]
 n_t_test = [[1000, 1000]]
 nt = sum(n_t_test[0])
@@ -206,7 +206,7 @@ if log:
 plt.plot(t, th_rate, '-v', label='theoritical rate')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
-plt.title(f"Taux d'erreur empirique et théorique p={p}, n={n}")
+plt.title(f"Taux d'erreur empirique et théorique p={p}, n={n}, beta={betat[0]}")
 plt.legend()
 plt.grid()
 plt.show()
