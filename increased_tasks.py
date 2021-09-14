@@ -6,39 +6,29 @@ Created on Fri Jul 23 08:58:48 2021
 @author: sami
 """
 from fonctions import *
-from time import time
-t0=time()
-
-multiple=5
-
-p = 500
+multiple=1
+p = 100
 m = 2
 
-# t = [7]
-t = list(range(2,10))
-# t = [2**i for i in range(2,7)]
+t = list(range(2,3))
 n_t_test = [[1000, 1000]]
 nt = sum(n_t_test[0])
 
-n_trial = 1
+n_trial = 2
 
 # np.random.seed(0)
 emp_rate, th_rate, var, relative_error_rate = [], [], [], []
 emp_rate2 = []
 task_target = 1
-# betat = np.random.uniform(0,1,size=(t[-1]))
-betat = 0.6*np.ones((t[-1]))
+betat = 0.9*np.ones((t[-1]))
 beta = 0
 X = []
 X_test = []
 M = []
 n_t = []
 n=0
-# print(f"beta = {betat[task_target]}")
 mean = mean_matrix(p, beta=betat[task_target], k=2, starting=1, constant=1)
-# print("mean : ", mean)
 M.append(mean[0])
-# print("M beggining", M)
 to_add = [multiple*50, multiple*50]
 n_t.append(to_add)
 # on garde moy pour la tâche target
