@@ -60,6 +60,7 @@ def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
             mu_ortho /= np.linalg.norm(mu_ortho)
             mu_ortho *=norme
         mu_t = beta*mu+np.sqrt(1-beta**2)*mu_ortho
+        print(mu_t[:5])
         classes = []
         for l in range(m):
             classes.append((-1)**l*mu_t)
@@ -102,14 +103,14 @@ def gaussian_synthetic_data(n, p, m, t, n_t, M, centered=False):
     
     X = []
     tmp = []
-    y_test = []
+    y_test = np.zeros((t*m,1))
     
     for task in range(t):
         tmp = []
         for k in range(m):
             mean = np.reshape(M[task][k], p)
             X_k = np.random.multivariate_normal(mean, np.identity(p), size=(n_t[task][k]))
-            y_test.append(k)
+            y_test[task*m+k]=(-1)**int(k==1)
             X_k = np.transpose(X_k)
             tmp.append(X_k)
         X.append(tmp)
@@ -311,7 +312,8 @@ def optimal_rate(xx, rho1, rho2):
     """
     Renvoie l'optimum bayésien.
     """
-    return 1-(rho1*qfunc(xx/2+1/xx*np.log(rho1/rho2))+rho2*qfunc(xx/2-1/xx*np.log(rho1/rho2)))
+    # return 1-(rho1*qfunc(xx/2+1/xx*np.log(rho1/rho2))+rho2*qfunc(xx/2-1/xx*np.log(rho1/rho2)))
+    # réecrire l'optimal bayésien
 
 def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, rho1=0.5, rho2=0.5, debug=False, average=True):
     """
@@ -482,22 +484,11 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, n
     #emp_means = [MM11, MM12, MM21, MM22, MM31, ...]
     MM_gathered = gather_empirical_mean(t, m, emp_means, diagonal, p, n_t)
     
-    if display:
-        print("MM_gathered : ")
-        matprint(MM_gathered)
-    
     c = estimate_c(n_t, n, t, m)
     c0 = p/n
     Dc = np.diag(c)
     correlation_matrix = compute_M_cal(n, p, Dc, MM_gathered, display=display)
     y = label_evaluation(t,m,Dc,MM_gathered, c0, task_target=task_target)
-#     e3=np.zeros((m*t,1));e3[-2]=1;
-#     e4=np.zeros((m*t,1));e4[-1]=1;
-#     y = np.linalg.solve((np.diag(c)+np.diag(c)@MM_gathered@np.diag(c/c0)),(np.diag(c/c0)@MM_gathered@(e3-e4)))
-#     tilde_y=np.linalg.solve((Dc+Dc@M_estimated@Dc*1/c0),(Dc*1/c0@M_estimated@(e3_e4)))
-    if display:
-        print("y : ")
-        matprint(y)
     
     if naive:
         y_n = np.zeros((2*t,1))

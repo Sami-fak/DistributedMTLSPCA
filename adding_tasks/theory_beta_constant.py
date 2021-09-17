@@ -12,6 +12,9 @@ multiple=1
 
 p = 100
 m = 2
+M = []
+mean = mean_matrix(p, beta=betat[task_target], k=2, starting=0, constant=1)
+M.append(mean[0])
 
 t = list(range(2,4))
 # t = [2**i for i in range(2,7)]
@@ -61,15 +64,8 @@ for beta_constant in constant:
         Dc = np.diag(c)
         # calcul des vraies moyennes et des labels optimaux
         # MM_true = (1-beta**2)*np.identity(2*b)+beta**2*np.ones((2*b,1))@np.ones((2*b,1)).T
-        diag_beta_pu = (np.diag(beta*np.ones(2*b-i), -1) for i in range(1, 2*b, 2))
-        diag_beta_pd = (np.diag(beta*np.ones(2*b-i), 1) for i in range(1, 2*b, 2))
-        diag_beta_mu = (np.diag(-beta*np.ones(2*b-i), -1) for i in range(2, 2*(b-1), 2))
-        diag_beta_md = (np.diag(-beta*np.ones(2*b-i), 1) for i in range(2, 2*(b-1), 2))
-        diag_up = np.diag(-1*np.ones(2*b-1), 1)
-        diag_down = np.diag(-1*np.ones(2*b-1), -1)
         
-        MM_true = diag_up+diag_down+np.identity(2*b)
-        a = next(diag_beta_pu)
+        
         # reprendre le calcul de MM_true, there might be something wronf with it
         if b==2:
             print(MM_true)

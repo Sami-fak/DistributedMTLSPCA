@@ -74,7 +74,7 @@ for t in range(2, k+2):
         MM.append(MM1)
         diag.append(diag1)
     print(f"lenMM : {len(MM)}")
-    V, y_opt, correlation_matrix, Dc, c0, MM_gathered, y_n,V_naive, y_s, V_s = merging_center(MM, diag, t, m, p, n, n_t, task_target, naive=True, single=True)
+    V, y_opt, correlation_matrix, Dc, c0, MM_gathered, y_n, V_naive, y_s, V_s = merging_center(MM, diag, t, m, p, n, n_t, task_target, naive=True, single=True)
     m_t = create_mt(t, m, y_opt, Dc, correlation_matrix, c0)
     m_t_naive = create_mt(t, m, y_n, Dc, correlation_matrix, c0)
     m_t_s = create_mt(t, m, y_s, Dc, correlation_matrix, c0)

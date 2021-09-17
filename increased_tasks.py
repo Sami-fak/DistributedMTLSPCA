@@ -7,10 +7,10 @@ Created on Fri Jul 23 08:58:48 2021
 """
 from fonctions import *
 multiple=1
-p = 100
+p = 5
 m = 2
 
-t = list(range(2,3))
+t = list(range(2,10))
 n_t_test = [[1000, 1000]]
 nt = sum(n_t_test[0])
 
@@ -27,7 +27,7 @@ X_test = []
 M = []
 n_t = []
 n=0
-mean = mean_matrix(p, beta=betat[task_target], k=2, starting=1, constant=1)
+mean = mean_matrix(p, beta=betat[task_target], k=2, starting=0, constant=1)
 M.append(mean[0])
 to_add = [multiple*50, multiple*50]
 n_t.append(to_add)
