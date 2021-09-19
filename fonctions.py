@@ -45,7 +45,6 @@ def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
     mu[0]= norme
     mu_ortho = np.zeros((p,1))
     mu_ortho[1] = 1
-    print("norm de mu = ", np.linalg.norm(mu))
     
     M = []
     classes = []
@@ -60,7 +59,6 @@ def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
             mu_ortho /= np.linalg.norm(mu_ortho)
             mu_ortho *=norme
         mu_t = beta*mu+np.sqrt(1-beta**2)*mu_ortho
-        print(mu_t[:5])
         classes = []
         for l in range(m):
             classes.append((-1)**l*mu_t)
@@ -145,21 +143,6 @@ def true_mean(M, p, t, m):
     return true_M.T
 
 def power_diagonal_matrix(D, exponent):
-    """
-
-    Parameters
-    ----------
-    D : TYPE
-        DESCRIPTION.
-    exponent : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
     diag = np.zeros(len(D))
     for i in range(len(D)):
         diag[i] = D[i][i]**exponent
@@ -186,8 +169,6 @@ def compute_M_cal(n,p,Dc,MM, k=2, display=False):
     correlation_matrix = 1/c0*np.power(Dc, 1/2)@MM@np.power(Dc, 1/2)
     
     return correlation_matrix
-
-# a revoir ?
 
 def label_evaluation(nb_tasks, nb_classes, Dc, M_estimated, c0, task_target=None):
     """
@@ -267,8 +248,6 @@ def compute_V(y, X, J, n):
         if value > maximum:
             maximum = value
             idx_larg = idx
-    
-    largest_eigenvalue = np.sort(eigenvalue.real)[-1]
     return V.T[idx_larg].real
 
 def create_mt(t, m, y, Dc, correlation_matrix, c0):
@@ -315,54 +294,33 @@ def optimal_rate(xx, rho1, rho2):
     # return 1-(rho1*qfunc(xx/2+1/xx*np.log(rho1/rho2))+rho2*qfunc(xx/2-1/xx*np.log(rho1/rho2)))
     # réecrire l'optimal bayésien
 
-def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, rho1=0.5, rho2=0.5, debug=False, average=True):
+def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, average=True):
     """
     Compute empirical error rate
     """
-#     print("mt1= \n", m_t[1])
     error = 0
-    eps1,eps2=0,0
     ni = sum(n_t[0])
     for l in range(nb_classes):
         for i in range(n_t[0][l]):
-            # on prend la transposée pour pouvoir travailler avec les colonnes
 
-            score = compute_score(V, X_test[0][l].T[i].T, m_t[task_target], rho1, rho2, average)
+            score = compute_score(V, X_test[0][l].T[i].T, m_t[task_target], average)
             # misclassifaction of class 1 in class 2, 
             if (score == 1 and l == 0):
                 error +=1
-                eps1+=1
             #missclassification of class 2 in class 1
             elif (score == -1 and l == 1):
                 error +=1
-                eps2+=1
                     
     erreur_emp = error/ni
     
     if erreur_emp > 0.5:
         erreur_emp=1-erreur_emp
-        
-    if debug:
-        print(eps1/n_t[0][0])
-        print(eps2/n_t[0][1])
-        print(erreur_emp)
-        print(eps1/n_t[0][0]*rho1+eps2/n_t[0][1]*rho2)
-        eps1=eps1/n_t[0][0]
-        eps2=eps2/n_t[0][1]
-        if eps1>0.5:
-            eps1=1-eps1
-        if eps2>0.5:
-            eps2=1-eps2
-        print(f"erreur empirirque = {erreur_emp}")
-        return erreur_emp, eps1, eps2
     return erreur_emp
 
 def debug_histogram(V, X_test, n_t):
     """
     Trace l'histogramme de V^T*x_1 et V^T*x_2.
     """
-#     print(X1[0][0])
-#     print(n_t[0][0])
     alpha = 0.5
     bins = 20
     plt.hist(V.T.dot(X_test.T[:n_t[0][0]].T), bins = bins, alpha=alpha, label=r"$C_1$", density=True)
@@ -385,16 +343,10 @@ def empirical_mean(nb_tasks, nb_classes, X, p, n_t, display=False):
                 for l in range(nb_classes):
                     if i == k and j == l:
                         moitie = int(n_t[i][j]/2)
-#                         print("DEBUG diagonal")
-#                         print(f"i = {i}, j = {j}")
-#                         print(i*nb_classes+j, i*nb_classes+j)
-#                         print("moitie : ", moitie)
                         
                         M[i*nb_classes+j][i*nb_classes+j] = np.ones((moitie, 1)).T@X[i][j].T[:moitie]@X[i][j].T[moitie:].T@np.ones((moitie))
                         M[i*nb_classes+j][i*nb_classes+j] /= moitie**2
                     else:
-#                         print(i*nb_classes+j, k*nb_classes+l)
-#                         print(i, j, k, l)
                         M[i*nb_classes+j][k*nb_classes+l] = np.ones((n_t[i][j], 1)).T@X[i][j].T@X[k][l]@np.ones((n_t[k][l]))
                         M[i*nb_classes+j][k*nb_classes+l] /= n_t[i][j]*n_t[k][l]
     
@@ -440,18 +392,12 @@ def gather_empirical_mean(nb_tasks, nb_classes, emp_means, diag_means, p, n_t):
     Chaque vecteur de moyennes et de taille px1
     Renvoie la matrice M des, produits scalaires entre moyennes empiriques de chaque client
     """
-    # print("diag : ", diag_means)
-    M = np.empty((nb_classes*nb_tasks, nb_classes*nb_tasks)) # ici 4x4
+    M = np.empty((nb_classes*nb_tasks, nb_classes*nb_tasks)) 
     for i in range(nb_tasks):
-        # O(k)
         for j in range(nb_classes):
-            # O(2)
             for k in range(nb_tasks):
-                # O(k)
                 for l in range(nb_classes):
-                    # O(2)
                     if i == k and j == l:
-                        # print(i*nb_classes+j,i*nb_classes+j)
                         M[i*nb_classes+j][i*nb_classes+j] = diag_means[i*nb_classes+j]
                     else:
                         M[i*nb_classes+j][k*nb_classes+l] = emp_means[i*nb_classes+j].T@emp_means[k*nb_classes+l]
@@ -481,7 +427,6 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, n
         for l in range(m):
             emp_means.append(np.reshape(MM[i].T[l], (p, 1)))
             diagonal.append(diag[i][l])
-    #emp_means = [MM11, MM12, MM21, MM22, MM31, ...]
     MM_gathered = gather_empirical_mean(t, m, emp_means, diagonal, p, n_t)
     
     c = estimate_c(n_t, n, t, m)
@@ -503,7 +448,7 @@ def merging_center(MM, diag, t, m, p, n, n_t, task_target=None, display=False, n
     
     if single:
         y_s = np.zeros((2*t,1))
-        y_s[0]=1;y_s[1]=-1
+        y_s[2*task_target]=1;y_s[2*task_target+1]=-1
         V_s = np.zeros((p,1))
         for i in range(t):
             for j in range(m):
@@ -569,8 +514,6 @@ def preprocess(X, p, std=True, axis=0, minmax=False, norm=False):
         scaler.fit_transform(X)
         return X
     
-    # tiled = np.tile(np.reshape(np.sum(X, axis=0), (p, 1)), (1, X.shape[0])).T
-    # X_t = np.true_divide(X, tiled, where=(tiled!=0))
     return preprocessing.scale(X, axis=axis, with_std=std)
     
 

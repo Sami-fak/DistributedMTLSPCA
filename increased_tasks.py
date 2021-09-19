@@ -7,10 +7,10 @@ Created on Fri Jul 23 08:58:48 2021
 """
 from fonctions import *
 multiple=1
-p = 5
+p = 100
 m = 2
 
-t = list(range(2,10))
+t = list(range(2,3))
 n_t_test = [[1000, 1000]]
 nt = sum(n_t_test[0])
 
@@ -106,8 +106,8 @@ for idx,b in enumerate(t):
         V_true = np.reshape(V_true, p)
         
         # Remplacer V par V_true et m_t par m_t_true pour tracer l'erreur empirique avec les vraies moyennes
-        erreur_empirique = compute_error_rate(X_test,V, m_t, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
-        erreur_empirique2 = compute_error_rate(X_test, V_true, m_t_true, m, n_t_test, Dc, c0, 1, rho1, rho2, False, average=False)
+        erreur_empirique = compute_error_rate(X_test,V, m_t, m, n_t_test, Dc, c0, 1, average=False)
+        erreur_empirique2 = compute_error_rate(X_test, V_true, m_t_true, m, n_t_test, Dc, c0, 1, average=False)
         err.append(erreur_empirique)
         err2.append(erreur_empirique2)
             

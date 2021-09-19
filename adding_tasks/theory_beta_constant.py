@@ -10,25 +10,23 @@ from fonctions import *
 
 multiple=1
 
-p = 100
+p = 5 
 m = 2
-M = []
-mean = mean_matrix(p, beta=betat[task_target], k=2, starting=0, constant=1)
-M.append(mean[0])
 
-t = list(range(2,4))
+t = list(range(2,3))
 # t = [2**i for i in range(2,7)]
-constant = [0.2, 0.6, 0.9]
-
+constant = [0.9]
+task_target = 1
 # np.random.seed(0)
-for beta_constant in constant:
+for beta in constant:
     th_rate = []
-    task_target = 1
+    M = []
+    mean = mean_matrix(p, beta=beta, k=2, starting=0, constant=1)
+    M.append(mean[0])
+    moy = mean[1][:]
     # betat = np.random.uniform(0,1,size=(t[-1]))
-    print(beta_constant)
-    betat = beta_constant*np.ones((t[-1]))
-    beta = beta_constant
-    X = []
+    print(beta)
+    betat = beta*np.ones((t[-1]))
     n_t = []
     n=0
     to_add = [multiple*50, multiple*50]
@@ -46,12 +44,15 @@ for beta_constant in constant:
         for i in range(1,boucle+1):
             # print("boucle ", i)
             # print("mean", mean)
+            mean = mean_matrix(p, beta=beta, k=1, starting=0, constant=1)
             if i==task_target and not added:
+                M.append(moy)
                 # pour la tache target
                 n_t.append([multiple*6, multiple*6])
                 added=True
             else:
                 n_t.append(to_add)
+                M.append(mean[0])
         # print(b)
         n=0
         # print(n_t)
@@ -62,23 +63,24 @@ for beta_constant in constant:
         c = estimate_c(n_t, n, b, m)
         c0 = p/n
         Dc = np.diag(c)
+        M_true = true_mean(M, p, b, m)
+        MM_true = M_true.T@M_true
         # calcul des vraies moyennes et des labels optimaux
         # MM_true = (1-beta**2)*np.identity(2*b)+beta**2*np.ones((2*b,1))@np.ones((2*b,1)).T
-        
         
         # reprendre le calcul de MM_true, there might be something wronf with it
         if b==2:
             print(MM_true)
         erreur_th = error_rate(b,m,Dc, MM_true,c0)[0][0]
         th_rate.append(erreur_th)
-    with open("log", "a") as log:
-        log.write(f"beta = {beta}\n")
-        for i, j in enumerate(th_rate):
-            log.write(f"({i+2}, {j})")
+    # with open("log", "a") as log:
+    #     log.write(f"beta = {beta}\n")
+    #     for i, j in enumerate(th_rate):
+    #         log.write(f"({i+2}, {j})")
         
-        log.write("\n\n")
-        
-    plt.plot(t, th_rate, label=f'beta={beta_constant}')
+        # log.write("\n\n")
+    # print(th_rate)
+    plt.plot(t, th_rate, label=f'beta={beta}')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
 plt.title(f"Taux d'erreur théorique p={p}, n={n}")
