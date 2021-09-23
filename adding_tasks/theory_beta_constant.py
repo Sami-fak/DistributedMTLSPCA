@@ -9,21 +9,19 @@ Created on Mon Sep 13 21:46:46 2021
 from fonctions import *
 
 multiple=1
-
-p = 5 
+p = 100
 m = 2
 
-t = list(range(2,3))
-# t = [2**i for i in range(2,7)]
+t = list(range(2,4))
 constant = [0.9]
 task_target = 1
-# np.random.seed(0)
+
 for beta in constant:
     th_rate = []
-    M = []
-    mean = mean_matrix(p, beta=beta, k=2, starting=0, constant=1)
-    M.append(mean[0])
-    moy = mean[1][:]
+    # M = []
+    # mean = mean_matrix(p, beta=beta, k=2, starting=0, constant=1)
+    # M.append(mean[0])
+    # moy = mean[1][:]
     # betat = np.random.uniform(0,1,size=(t[-1]))
     print(beta)
     betat = beta*np.ones((t[-1]))
@@ -42,17 +40,16 @@ for beta in constant:
         # to_add correspond au nombre de data à ajouter en dehors de la tache target
         
         for i in range(1,boucle+1):
-            # print("boucle ", i)
-            # print("mean", mean)
-            mean = mean_matrix(p, beta=beta, k=1, starting=0, constant=1)
+            print("boucle ", i)
+            # mean = mean_matrix(p, beta=beta, k=1, starting=idx, constant=1)
             if i==task_target and not added:
-                M.append(moy)
+                # M.append(moy)
                 # pour la tache target
                 n_t.append([multiple*6, multiple*6])
                 added=True
             else:
                 n_t.append(to_add)
-                M.append(mean[0])
+                # M.append(mean[0])
         # print(b)
         n=0
         # print(n_t)
@@ -63,10 +60,27 @@ for beta in constant:
         c = estimate_c(n_t, n, b, m)
         c0 = p/n
         Dc = np.diag(c)
-        M_true = true_mean(M, p, b, m)
-        MM_true = M_true.T@M_true
+        # M_true = true_mean(M, p, b, m)
+        # MM_true = M_true.T@M_true
         # calcul des vraies moyennes et des labels optimaux
-        # MM_true = (1-beta**2)*np.identity(2*b)+beta**2*np.ones((2*b,1))@np.ones((2*b,1)).T
+        
+        ones = np.ones(2*b-1)
+        for i in range(len(ones)):
+            if i%2==0:
+                ones[i]-=beta**2
+            else:
+                ones[i]-=1
+            
+        diag_sup = np.diag(ones, 1)
+        diag_inf = np.diag(ones, -1)
+        MM_true = (1-beta**2)*np.identity(2*b)+beta**2*np.ones((2*b,1))@np.ones((2*b,1)).T + diag_inf + diag_sup
+        
+        neg=1
+        for i in range(len(MM_true)):
+            neg^=1
+            for j in range(len(MM_true)):
+                MM_true[i][j]*=(-1)**(neg)
+                neg^=1
         
         # reprendre le calcul de MM_true, there might be something wronf with it
         if b==2:
@@ -78,7 +92,7 @@ for beta in constant:
     #     for i, j in enumerate(th_rate):
     #         log.write(f"({i+2}, {j})")
         
-        # log.write("\n\n")
+    #     log.write("\n\n")
     # print(th_rate)
     plt.plot(t, th_rate, label=f'beta={beta}')
 plt.xlabel("Nombre de tâches")

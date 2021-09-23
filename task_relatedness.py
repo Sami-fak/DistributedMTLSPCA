@@ -20,7 +20,7 @@ emp_rate, th_rate, var = [], [], []
 emp_rate_n, var_n = [], []
 emp_rate_s = []
 th_rate2 = []
-n_trial = 10
+n_trial = 1
 
 n=0
 for i in range(len(n_t)):

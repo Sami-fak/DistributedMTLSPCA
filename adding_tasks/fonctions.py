@@ -15,6 +15,13 @@ from scipy.io import loadmat
 
 plt.style.use('seaborn-dark-palette')
 
+def matprint(mat, fmt="g"):
+    col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
+    for x in mat:
+        for i, y in enumerate(x):
+            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
+        print("")
+
 def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
     """
 
@@ -48,17 +55,21 @@ def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
     
     M = []
     classes = []
-    if starting==1:
-        for l in range(m):
-            classes.append((-1)**l*mu)
-        M.append(classes)
+    # if starting==1:
+    #     for l in range(m):
+    #         classes.append((-1)**l*mu)
+    #     M.append(classes)
     
-    for t in range(starting,k):
+    for t in range(starting,starting+k):
         if constant:
-            mu_ortho = np.concatenate((np.zeros((1,1)),np.random.normal(0,1,size=(p-1,1))))
-            mu_ortho /= np.linalg.norm(mu_ortho)
-            mu_ortho *=norme
+            # mu_ortho = np.concatenate((np.zeros((1,1)),np.random.normal(0,1,size=(p-1,1))))
+            # mu_ortho /= np.linalg.norm(mu_ortho)
+            # mu_ortho *=norme
+            mu_ortho = np.zeros((p,1))
+            mu_ortho[t+1] = 1
+        print(mu_ortho[:5])
         mu_t = beta*mu+np.sqrt(1-beta**2)*mu_ortho
+        print(mu_t[:5])
         classes = []
         for l in range(m):
             classes.append((-1)**l*mu_t)

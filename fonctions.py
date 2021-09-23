@@ -15,6 +15,13 @@ from scipy.io import loadmat
 
 plt.style.use('seaborn-dark-palette')
 
+def matprint(mat, fmt="g"):
+    col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
+    for x in mat:
+        for i, y in enumerate(x):
+            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
+        print("")
+
 def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
     """
 
@@ -513,7 +520,7 @@ def preprocess(X, p, std=True, axis=0, minmax=False, norm=False):
         scaler = MinMaxScaler()
         scaler.fit_transform(X)
         return X
-    
+     
     return preprocessing.scale(X, axis=axis, with_std=std)
     
 
