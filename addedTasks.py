@@ -5,7 +5,8 @@ Created on Fri Jul 23 08:58:48 2021
 
 @author: sami
 """
-from fonctions import *
+from utils.fonctions import *
+
 multiple=1
 p = 100
 m = 2
@@ -17,8 +18,6 @@ nt = sum(n_t_test[0])
 n_trial = 1
 
 emp_rate, th_rate, var, relative_error_rate = [], [], [], []
-emp_rate2 = []
-th_rate2 = []
 task_target = 1
 bc = 0.9
 betat = bc*np.ones((t[-1]))
@@ -52,7 +51,6 @@ for idx,b in enumerate(t):
         
         if i==task_target and not added:
             M.append(moy)
-            # pour la tache target
             n_t.append([multiple*20, multiple*20])
             added=True
         else:
@@ -61,13 +59,11 @@ for idx,b in enumerate(t):
         beta+=1
     err=[]
     err2=[]
-    # print(b)
     n=0
-    # print(n_t)
     for i in range(len(n_t)):
         n += sum(n_t[i])
     print("n = ", n)
-    # on crée les données synthétiques 
+    
     ones = np.ones(2*b-1)
     for i in range(len(ones)):
         if i%2==0:
@@ -114,14 +110,11 @@ for idx,b in enumerate(t):
         
     emp_rate.append(np.mean(err))
     var.append(np.std(err))
-    # M_true = true_mean(M, p, b, m)
-    # MM_true = M_true.T@M_true
-    # th_rate2.append(error_rate(b,m,Dc, MM_true,c0)[0][0])
 
-# lower = np.array(emp_rate) - np.array(var)
-# upper = np.array(emp_rate) + np.array(var)
-# plt.fill_between(t, lower, upper, alpha=0.2, label="variance")
-# plt.plot(t, emp_rate, "-o", label='empirical rate')
+lower = np.array(emp_rate) - np.array(var)
+upper = np.array(emp_rate) + np.array(var)
+plt.fill_between(t, lower, upper, alpha=0.2, label="variance")
+plt.plot(t, emp_rate, "-o", label='empirical rate')
     
 if log:
     with open("log.txt", "a") as f:
@@ -138,7 +131,7 @@ if log:
         f.write("\n------------\n")
     
 plt.plot(t, th_rate, '-v', label='optimal rate')
-# plt.plot(t, th_rate2, '-v', label='theoritical rate')
+plt.plot(t, th_rate2, '-v', label='theoritical rate')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
 plt.title(f"Taux d'erreur empirique et théorique p={p}, n={n}, beta={betat[0]}")

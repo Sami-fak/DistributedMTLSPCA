@@ -55,21 +55,17 @@ def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
     
     M = []
     classes = []
-    # if starting==1:
-    #     for l in range(m):
-    #         classes.append((-1)**l*mu)
-    #     M.append(classes)
+    if starting==1:
+        for l in range(m):
+            classes.append((-1)**l*mu)
+        M.append(classes)
     
-    for t in range(starting,starting+k):
+    for t in range(starting,k):
         if constant:
-            # mu_ortho = np.concatenate((np.zeros((1,1)),np.random.normal(0,1,size=(p-1,1))))
-            # mu_ortho /= np.linalg.norm(mu_ortho)
-            # mu_ortho *=norme
-            mu_ortho = np.zeros((p,1))
-            mu_ortho[t+1] = 1
-        print(mu_ortho[:5])
+            mu_ortho = np.concatenate((np.zeros((1,1)),np.random.normal(0,1,size=(p-1,1))))
+            mu_ortho /= np.linalg.norm(mu_ortho)
+            mu_ortho *=norme
         mu_t = beta*mu+np.sqrt(1-beta**2)*mu_ortho
-        print(mu_t[:5])
         classes = []
         for l in range(m):
             classes.append((-1)**l*mu_t)
@@ -294,16 +290,7 @@ def error_rate(nb_tasks, nb_classes, Dc, M_cur, c0, task_target=1):
     e3[2*task_target] = 1
     power_dc = power_diagonal_matrix(Dc, -1/2)
     inv = np.linalg.inv(M_cur+np.identity(nb_tasks*nb_classes))
-    print("arg q-func : ")
-    print(e3.T.dot(M_cur).dot(Dc).dot(np.linalg.inv(Dc.dot(M_cur).dot(Dc)+c0*Dc)).dot(Dc).dot(M_cur).dot(e3))
     return qfunc(np.sqrt(e3.T.dot(M_cur).dot(Dc).dot(np.linalg.inv(Dc.dot(M_cur).dot(Dc)+c0*Dc)).dot(Dc).dot(M_cur).dot(e3)))   
-
-def optimal_rate(xx, rho1, rho2):
-    """
-    Renvoie l'optimum bayésien.
-    """
-    # return 1-(rho1*qfunc(xx/2+1/xx*np.log(rho1/rho2))+rho2*qfunc(xx/2-1/xx*np.log(rho1/rho2)))
-    # réecrire l'optimal bayésien
 
 def compute_error_rate(X_test, V, m_t, nb_classes, n_t, Dc, c0, task_target=1, average=True):
     """
@@ -524,7 +511,7 @@ def preprocess(X, p, std=True, axis=0, minmax=False, norm=False):
         scaler = MinMaxScaler()
         scaler.fit_transform(X)
         return X
-    
+     
     return preprocessing.scale(X, axis=axis, with_std=std)
     
 

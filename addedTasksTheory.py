@@ -6,23 +6,19 @@ Created on Mon Sep 13 21:46:46 2021
 @author: sami
 """
 #!/usr/bin/env python3
-from fonctions import *
+
+from utils.fonctions import *
 
 multiple=1
 p = 100
 m = 2
 
-t = list(range(2,4))
-constant = [0.9]
+t = list(range(2,100))
+constant = [0.2,0.6,0.8,0.9]
 task_target = 1
 
 for beta in constant:
     th_rate = []
-    # M = []
-    # mean = mean_matrix(p, beta=beta, k=2, starting=0, constant=1)
-    # M.append(mean[0])
-    # moy = mean[1][:]
-    # betat = np.random.uniform(0,1,size=(t[-1]))
     print(beta)
     betat = beta*np.ones((t[-1]))
     n_t = []
@@ -31,39 +27,26 @@ for beta in constant:
     n_t.append(to_add)
     added=False
     for idx,b in enumerate(t):
-        print(idx)
         if idx==0:
             boucle = b-1
         else:
             boucle = b-(t[idx-1])
-        # print(f"boucle = {boucle}")
-        # to_add correspond au nombre de data à ajouter en dehors de la tache target
         
         for i in range(1,boucle+1):
-            print("boucle ", i)
-            # mean = mean_matrix(p, beta=beta, k=1, starting=idx, constant=1)
             if i==task_target and not added:
-                # M.append(moy)
-                # pour la tache target
-                n_t.append([multiple*6, multiple*6])
+                n_t.append([multiple*20, multiple*20])
                 added=True
             else:
                 n_t.append(to_add)
-                # M.append(mean[0])
-        # print(b)
         n=0
-        # print(n_t)
         for i in range(len(n_t)):
             n += sum(n_t[i])
         print("n = ", n)
-        # on crée les données synthétiques 
+        
         c = estimate_c(n_t, n, b, m)
         c0 = p/n
         Dc = np.diag(c)
-        # M_true = true_mean(M, p, b, m)
-        # MM_true = M_true.T@M_true
-        # calcul des vraies moyennes et des labels optimaux
-        
+                
         ones = np.ones(2*b-1)
         for i in range(len(ones)):
             if i%2==0:
@@ -82,7 +65,7 @@ for beta in constant:
                 MM_true[i][j]*=(-1)**(neg)
                 neg^=1
         
-        # reprendre le calcul de MM_true, there might be something wronf with it
+        
         if b==2:
             print(MM_true)
         erreur_th = error_rate(b,m,Dc, MM_true,c0)[0][0]
@@ -91,9 +74,8 @@ for beta in constant:
     #     log.write(f"beta = {beta}\n")
     #     for i, j in enumerate(th_rate):
     #         log.write(f"({i+2}, {j})")
-        
     #     log.write("\n\n")
-    # print(th_rate)
+        
     plt.plot(t, th_rate, label=f'beta={beta}')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
