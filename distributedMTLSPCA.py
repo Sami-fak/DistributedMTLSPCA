@@ -6,7 +6,7 @@ Created on Fri Jul 23 09:45:25 2021
 @author: sami
 """
 
-from fonctions import *
+from utils.fonctions import *
 
 p = 100
 m = 2
