@@ -19,6 +19,9 @@ task_target = 1
 
 for beta in constant:
     th_rate = []
+    opt_rate = []
+    R1=[]
+    R2=[]
     print(beta)
     betat = beta*np.ones((t[-1]))
     n_t = []
@@ -70,13 +73,20 @@ for beta in constant:
             print(MM_true)
         erreur_th = error_rate(b,m,Dc, MM_true,c0)[0][0]
         th_rate.append(erreur_th)
+        
+        r1, r2 = bayes_optimal(n_t, MM_true, p, b)
+        R1.append(r1)
+        R2.append(r2)
+        # matprint(D)
+        # opt_rate.append(optimal_rate(MM_true, D, b))
     # with open("log", "a") as log:
     #     log.write(f"beta = {beta}\n")
     #     for i, j in enumerate(th_rate):
     #         log.write(f"({i+2}, {j})")
     #     log.write("\n\n")
         
-    plt.plot(t, th_rate, label=f'beta={beta}')
+    plt.plot(t, th_rate, '-', label=f'beta={beta}')
+    plt.plot(t, R2, linewidth=5, linestyle=((0, (1, 3))), color='red')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
 plt.title(f"Taux d'erreur théorique p={p}, n={n}")

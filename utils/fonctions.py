@@ -21,6 +21,51 @@ def matprint(mat, fmt="g"):
         for i, y in enumerate(x):
             print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
         print("")
+        
+def bayes_risk(rho, gamma):
+    """
+    Compute minimal Bayes error rate of label estimation for task t
+    """
+    if rho == 1/2:
+        return 1-norm.cdf(np.sqrt(gamma))
+
+    return 1-rho*norm.cdf(np.sqrt(gamma)-1/(2*np.sqrt(gamma))*np.log((1-rho)/rho))-(1-rho)*norm.cdf(np.sqrt(gamma)+1/(2*np.sqrt(gamma))*np.log((1-rho)/rho))
+        
+def bayes_optimal(n_t, MM, p, b, sigma=1, task_target=1):
+    """
+    Renvoie R1, R2
+    """
+    qt = []
+    # a1, a2 = (n_t[0][0] n_t[0][1])/p, (n_t[1][0] + n_t[1][1])/p
+    # print(f"a1 = {a1}")
+    D = np.zeros((2*b))
+    for i in range(0,b):
+        D[2*i]=n_t[i][0]/p
+        D[2*i+1]=n_t[i][1]/p
+    D=np.diag(D)
+    # D = np.diag([a1/sigma**2, a2/sigma**2])
+    # matprint(D)
+#     matprint(MM)
+#     print(np.linalg.inv(np.identity(4)+D*MM))
+#     print(MM*np.linalg.inv(np.identity(4)+D*MM))
+    # print(np.identity(2*b)+D*MM)
+    # gros con sami
+    Q = np.diag((MM-MM@np.linalg.inv(np.identity(2*b)+D@MM)))
+    # print(Q)
+    qt.append(Q[2*task_target])
+    qt.append(Q[2*task_target+1])
+    
+    # print(qt)
+    if bayes_risk(n_t[0][0]/sum(n_t[0]), qt[0])>0.5:
+        R1 = (1-bayes_risk(n_t[0][0]/sum(n_t[0]), qt[0]))
+    else:
+        R1 = (bayes_risk(n_t[0][0]/sum(n_t[0]), qt[0]))
+        
+    if bayes_risk(n_t[1][0]/sum(n_t[1]), qt[1])>0.5:
+        R2 = (1-bayes_risk(n_t[1][0]/sum(n_t[1]), qt[1]))
+    else:
+        R2 = (bayes_risk(n_t[1][0]/sum(n_t[1]), qt[1]))  
+    return R1, R2
 
 def mean_matrix(p, beta=0.8, k=2, m=2,starting=1, constant=False, norme=1):
     """

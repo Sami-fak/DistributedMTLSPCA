@@ -7,19 +7,19 @@ Created on Fri Jul 23 08:58:48 2021
 """
 from utils.fonctions import *
 
-multiple=1
-p = 100
+multiple=10
+p = multiple*100
 m = 2
 
 t = list(range(2,4))
 n_t_test = [[1000, 1000]]
 nt = sum(n_t_test[0])
 
-n_trial = 1
+n_trial = 50
 
-emp_rate, th_rate, var, relative_error_rate = [], [], [], []
+emp_rate, th_rate, var = [], [], []
 task_target = 1
-bc = 0.9
+bc = 0.6
 betat = bc*np.ones((t[-1]))
 beta = 0
 X = []
@@ -37,7 +37,7 @@ X_test_aggregated = aggregate_array(X_test, p, nt, 1, m)
 
 log = False
 added=False
-
+print("p = ", p)
 for idx,b in enumerate(t):
     print(idx)
     if idx==0:
@@ -46,7 +46,6 @@ for idx,b in enumerate(t):
         boucle = b-(t[idx-1])
     
     for i in range(1,boucle+1):
-        print(f"beta = {betat[beta]}")
         mean = mean_matrix(p, beta=betat[beta], k=1, starting=0, constant=1)
         
         if i==task_target and not added:
@@ -131,10 +130,16 @@ if log:
         f.write("\n------------\n")
     
 plt.plot(t, th_rate, '-v', label='optimal rate')
-plt.plot(t, th_rate2, '-v', label='theoritical rate')
 plt.xlabel("Nombre de tâches")
 plt.ylabel("Taux d'erreur")
 plt.title(f"Taux d'erreur empirique et théorique p={p}, n={n}, beta={betat[0]}")
 plt.legend()
 plt.grid()
 plt.show()
+
+relative = []
+temp = []
+for i in range(len(emp_rate)):
+    temp.append((emp_rate[i]-th_rate[i])/th_rate[i])
+relative.append(np.mean(temp)*100)    
+print(f"Erreur relative : {relative[0]}%")
