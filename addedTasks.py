@@ -115,24 +115,10 @@ upper = np.array(emp_rate) + np.array(var)
 plt.fill_between(t, lower, upper, alpha=0.2, label="variance")
 plt.plot(t, emp_rate, "-o", label='empirical rate')
     
-if log:
-    with open("log.txt", "a") as f:
-        f.write(f"\nbeta = {betat[0]}\n")
-        f.write("------------\n")
-        for i in range(len(emp_rate)):
-            f.write(f"({i+2}, {emp_rate[i]})")
-        f.write("\n\n")
-        for i in range(len(th_rate)):
-            f.write(f"({i+2}, {th_rate[i]})")
-        f.write("\n\n")
-        for i in range(len(emp_rate)):
-            f.write(f"({i+2}, {emp_rate[i]}) +- ({i+2}, {abs(upper[i]-emp_rate[i])})")
-        f.write("\n------------\n")
-    
 plt.plot(t, th_rate, '-v', label='optimal rate')
-plt.xlabel("Nombre de tâches")
-plt.ylabel("Taux d'erreur")
-plt.title(f"Taux d'erreur empirique et théorique p={p}, n={n}, beta={betat[0]}")
+plt.xlabel("Number of tasks")
+plt.ylabel("Error rate")
+plt.title(f"Empirical and theoretical rate for p={p}, n={n}, beta={betat[0]}")
 plt.legend()
 plt.grid()
 plt.show()
@@ -142,4 +128,3 @@ temp = []
 for i in range(len(emp_rate)):
     temp.append((emp_rate[i]-th_rate[i])/th_rate[i])
 relative.append(np.mean(temp)*100)    
-print(f"Erreur relative : {relative[0]}%")

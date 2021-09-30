@@ -17,6 +17,8 @@ t = list(range(2,100))
 constant = [0.2,0.6,0.8,0.9]
 task_target = 1
 
+compare_with_bayes_optimal = False
+
 for beta in constant:
     th_rate = []
     opt_rate = []
@@ -74,22 +76,17 @@ for beta in constant:
         erreur_th = error_rate(b,m,Dc, MM_true,c0)[0][0]
         th_rate.append(erreur_th)
         
-        r1, r2 = bayes_optimal(n_t, MM_true, p, b)
-        R1.append(r1)
-        R2.append(r2)
-        # matprint(D)
-        # opt_rate.append(optimal_rate(MM_true, D, b))
-    # with open("log", "a") as log:
-    #     log.write(f"beta = {beta}\n")
-    #     for i, j in enumerate(th_rate):
-    #         log.write(f"({i+2}, {j})")
-    #     log.write("\n\n")
+        if compare_with_bayes_optimal:
+            r1, r2 = bayes_optimal(n_t, MM_true, p, b)
+            R1.append(r1)
+            R2.append(r2)
         
     plt.plot(t, th_rate, '-', label=f'beta={beta}')
-    plt.plot(t, R2, linewidth=5, linestyle=((0, (1, 3))), color='red')
-plt.xlabel("Nombre de tâches")
-plt.ylabel("Taux d'erreur")
-plt.title(f"Taux d'erreur théorique p={p}, n={n}")
+    if compare_with_bayes_optimal:
+        plt.plot(t, R2, linewidth=5, linestyle=((0, (1, 3))), color='red')
+plt.xlabel("Tasks number")
+plt.ylabel("Error rate")
+plt.title(f"Theoretical rate p={p}, n={n}")
 plt.legend()
 plt.grid()
 plt.show()

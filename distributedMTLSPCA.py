@@ -80,26 +80,6 @@ for b in beta:
     var.append(np.std(err))
     var_n.append(np.std(err_n))
 
-# with open("log_task", "a") as log:
-#     log.write(f"n = {n}, p ={p}\n")
-#     log.write(f"n_trial = {n_trial}\n")
-#     log.write("\nEmp rate MTL-SPCA: \n")
-#     for i in range(len(emp_rate)):
-#         log.write(f"({beta[i]}, {emp_rate[i]})")
-#     log.write("\nEmp rate N-SPCA: \n")
-#     for i in range(len(emp_rate)):
-#         log.write(f"({beta[i]}, {emp_rate_n[i]})")
-#     log.write("\nEmp rate ST-SPCA: \n")
-#     for i in range(len(emp_rate)):
-#         log.write(f"({beta[i]}, {emp_rate_s[i]})")
-#     log.write("\nVariance: \n")
-#     for i in range(len(emp_rate)):
-#         log.write(f"({beta[i]}, {emp_rate[i]}) +- ({beta[i]},  {var[i]})")
-#     log.write("\nTh Rate: \n")
-#     for i in range(len(th_rate2)):
-#         log.write(f"({beta[i]}, {th_rate2[i]})")
-
-
 lower = np.array(emp_rate) - np.array(var)
 upper = np.array(emp_rate) + np.array(var)
 
